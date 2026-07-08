@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Imprint Prints ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a; /* Navy Blue */
+      --secondary: #3b82f6;
+      --accent: #f59e0b;
+      --bg: #f8fafc;
+      --text: #334155;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --sidebar-w: 250px;
+    }
+    .dark-mode {
+      --bg: #0f172a;
+      --text: #f8fafc;
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --border: #334155;
+      --primary: #1e293b;
+    }
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
+    
+    /* Utility */
+    .glass { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--secondary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); }
+    
+    /* Layout */
+    #sidebar { width: var(--sidebar-w); background: var(--primary); color: white; display: flex; flex-direction: column; transition: 0.3s; }
+    .logo { padding: 20px; font-size: 20px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:10px; }
+    .menu { flex: 1; overflow-y: auto; padding: 10px 0; }
+    .menu-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; color: #cbd5e1; }
+    .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--secondary); }
+    .user-info { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .content { flex: 1; padding: 30px; overflow-y: auto; }
+    
+    /* Dashboard Cards */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+    .stat-card { padding: 20px; border-radius: 12px; }
+    .stat-card h3 { font-size: 14px; color: #64748b; margin-bottom: 10px; }
+    .stat-card .val { font-size: 28px; font-weight: 700; }
+    
+    /* Tables */
+    .table-container { overflow-x: auto; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    th { background: rgba(0,0,0,0.02); font-weight: 600; }
+    tr:hover { background: rgba(0,0,0,0.01); }
+    
+    /* POS Layout */
+    .pos-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%; }
+    .pos-products { display: flex; flex-direction: column; gap: 20px; }
+    .pos-cart { display: flex; flex-direction: column; }
+    .cart-items { flex: 1; overflow-y: auto; margin: 20px 0; border: 1px solid var(--border); border-radius: 8px; }
+    .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); }
+    .cart-totals { background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .tot-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    
+    /* Custom Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal { background: var(--card-bg); padding: 30px; border-radius: 12px; min-width: 400px; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 20px; font-weight: 600; }
+    .close-btn { cursor: pointer; color: var(--danger); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 14px; }
+    
+    /* Loader */
+    #loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    .spinner { border: 4px solid var(--border); border-top: 4px solid var(--secondary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom:10px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    #login-screen { position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: var(--primary); display: none; justify-content: center; align-items: center; z-index: 2000; }
+    .login-box { background: white; padding: 40px; border-radius: 12px; width: 400px; text-align: center; color: #333; }
+  </style>
+</head>
+<body>
+
+  <!-- App Loader -->
+  <div id="loader"><div class="spinner"></div><h3>Imprint Prints ERP</h3><p>Loading system...</p></div>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-box glass">
+      <h2 style="margin-bottom:20px;">Imprint Prints</h2>
+      <form id="login-form" onsubmit="event.preventDefault(); App.login();">
+        <div class="form-group"><input type="text" id="log-email" placeholder="Email / Username" required value="admin@imprint.com"></div>
+        <div class="form-group"><input type="password" id="log-pass" placeholder="Password" required value="admin123"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="sidebar">
+    <div class="logo"><span class="material-icons">print</span> Imprint Prints</div>
+    <div class="menu" id="nav-menu">
+      <!-- Menu injected here -->
+    </div>
+    <div class="user-info">
+      <div id="active-user" style="font-weight:600; margin-bottom:10px;">User</div>
+      <button class="btn btn-outline" style="color:white; border-color:white;" onclick="App.logout()">Logout</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <header class="glass">
+      <div style="font-size: 20px; font-weight: 600;" id="page-title">Dashboard</div>
+      <div style="display:flex; gap:15px; align-items:center;">
+        <span class="material-icons" style="cursor:pointer;" onclick="App.toggleTheme()">brightness_4</span>
+        <button class="btn btn-success" onclick="App.loadView('POS')"><span class="material-icons">point_of_sale</span> POS Terminal</button>
+      </div>
+    </header>
+    <div class="content" id="app-content">
+      <!-- Dynamic Content injected here -->
+    </div>
+  </div>
+
+  <!-- Global Modal -->
+  <div class="modal-overlay" id="modal-wrapper">
+    <div class="modal glass">
+      <div class="modal-header">
+        <span id="modal-title">Form</span>
+        <span class="material-icons close-btn" onclick="UI.closeModal()">close</span>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // ----- CORE SYSTEM ----- //
+    const MOCK_MODE = typeof google === 'undefined';
+    
+    const App = {
+      state: { user: null, view: 'Dashboard', theme: 'light', cart: [], db: {} },
+      
+      init: function() {
+        if(localStorage.getItem('imprint_theme') === 'dark') App.toggleTheme();
+        let savedUser = localStorage.getItem('imprint_user');
+        if (savedUser) {
+          App.state.user = JSON.parse(savedUser);
+          App.boot();
+        } else {
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('login-screen').style.display = 'flex';
+        }
+      },
+      
+      login: async function() {
+        let e = document.getElementById('log-email').value;
+        let p = document.getElementById('log-pass').value;
+        let res = await App.rpc('login', {email: e, password: p});
+        if(res.success) {
+          App.state.user = res.user;
+          localStorage.setItem('imprint_user', JSON.stringify(res.user));
+          document.getElementById('login-screen').style.display = 'none';
+          App.boot();
+        } else {
+          alert(res.message);
+        }
+      },
+      
+      logout: function() {
+        localStorage.removeItem('imprint_user');
+        location.reload();
+      },
+      
+      boot: async function() {
+        document.getElementById('loader').style.display = 'flex';
+        document.getElementById('active-user').innerText = App.state.user.name + ' (' + App.state.user.role + ')';
+        UI.renderMenu();
+        await App.loadView('Dashboard');
+        document.getElementById('loader').style.display = 'none';
+      },
+      
+      toggleTheme: function() {
+        document.body.classList.toggle('dark-mode');
+        App.state.theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+        localStorage.setItem('imprint_theme', App.state.theme);
+      },
+      
+      rpc: function(action, payload) {
+        return new Promise((resolve) => {
+          if (MOCK_MODE) { console.log('RPC Mock:', action, payload); setTimeout(()=>resolve({success:true, data:[]}), 500); return; }
+          google.script.run
+            .withSuccessHandler(res => resolve(res))
+            .withFailureHandler(err => resolve({success: false, message: err.message}))
+            .processRequest(action, payload);
+        });
+      },
+      
+      loadView: async function(viewName) {
+        App.state.view = viewName;
+        document.getElementById('page-title').innerText = viewName;
+        UI.renderMenu();
+        const content = document.getElementById('app-content');
+        content.innerHTML = '<div class="spinner"></div>';
+        
+        if (Views[viewName]) {
+          await Views[viewName](content);
+        } else if (Schemas[viewName]) {
+          await UI.renderCRUD(viewName, content);
+        } else {
+          content.innerHTML = '<h3>View not implemented yet.</h3>';
+        }
+      }
+    };
+
+    // ----- UI COMPONENTS ----- //
+    const UI = {
+      menuItems: [
+        { name: 'Dashboard', icon: 'dashboard' },
+        { name: 'POS', icon: 'point_of_sale' },
+        { name: 'Orders', icon: 'list_alt' },
+        { name: 'PaperStock', icon: 'inventory' },
+        { name: 'Services', icon: 'design_services' },
+        { name: 'Customers', icon: 'people' },
+        { name: 'Sales', icon: 'receipt' },
+        { name: 'Purchases', icon: 'shopping_cart' },
+        { name: 'Suppliers', icon: 'local_shipping' },
+        { name: 'Expenses', icon: 'account_balance_wallet' },
+        { name: 'Reports', icon: 'bar_chart' },
+        { name: 'Users', icon: 'manage_accounts' },
+        { name: 'Settings', icon: 'settings' }
+      ],
+      
+      renderMenu: function() {
+        const m = document.getElementById('nav-menu');
+        m.innerHTML = UI.menuItems.map(i => `
+          <div class="menu-item ${App.state.view === i.name ? 'active' : ''}" onclick="App.loadView('${i.name}')">
+            <span class="material-icons">${i.icon}</span> ${i.name}
+          </div>
+        `).join('');
+      },
+      
+      openModal: function(title, html) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerHTML = html;
+        document.getElementById('modal-wrapper').style.display = 'flex';
+      },
+      
+      closeModal: function() { document.getElementById('modal-wrapper').style.display = 'none'; },
+      
+      renderCRUD: async function(entity, container) {
+        let res = await App.rpc('get_data', {sheet: entity});
+        let data = res.data || [];
+        App.state.db[entity] = data;
+        let schema = Schemas[entity];
+        
+        let html = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <input type="text" placeholder="Search ${entity}..." style="width:300px;" oninput="UI.filterTable(this.value, '${entity}-table')">
+            <button class="btn btn-primary" onclick="UI.showForm('${entity}')"><span class="material-icons">add</span> Add New</button>
+          </div>
+          <div class="table-container glass">
+            <table id="${entity}-table">
+              <thead><tr>${schema.fields.filter(f=>!f.hideList).map(f=>`<th>${f.label}</th>`).join('')}<th>Action</th></tr></thead>
+              <tbody>
+                ${data.map(row => `
+                  <tr>
+                    ${schema.fields.filter(f=>!f.hideList).map(f=>`<td>${row[f.key]||''}</td>`).join('')}
+                    <td>
+                      <button class="btn btn-outline" style="padding:4px 8px;" onclick='UI.showForm("${entity}", ${JSON.stringify(row).replace(/'/g,"&apos;")})'><span class="material-icons" style="font-size:16px;">edit</span></button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        container.innerHTML = html;
+      },
+      
+      filterTable: function(query, tableId) {
+        let trs = document.querySelectorAll(`#${tableId} tbody tr`);
+        trs.forEach(tr => {
+          tr.style.display = tr.innerText.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+        });
+      },
+      
+      showForm: function(entity, data = null) {
+        let schema = Schemas[entity];
+        let isEdit = !!data;
+        let html = `<form onsubmit="event.preventDefault(); UI.submitForm('${entity}', ${isEdit}, '${data ? data[schema.idField] : ''}')">`;
+        schema.fields.forEach(f => {
+          let val = data ? (data[f.key]||'') : '';
+          html += `<div class="form-group"><label>${f.label}</label>`;
+          if(f.type === 'select') {
+            html += `<select id="field_${f.key}" ${f.required?'required':''}>
+              ${f.options.map(o => `<option value="${o}" ${o==val?'selected':''}>${o}</option>`).join('')}
+            </select>`;
+          } else {
+            html += `<input type="${f.type||'text'}" id="field_${f.key}" value="${val}" ${f.required?'required':''} ${f.disabled?'disabled':''}>`;
+          }
+          html += `</div>`;
+        });
+        html += `<div style="text-align:right;"><button type="submit" class="btn btn-success">Save</button></div></form>`;
+        UI.openModal(isEdit ? 'Edit ' + entity : 'New ' + entity, html);
+      },
+      
+      submitForm: async function(entity, isEdit, idVal) {
+        let schema = Schemas[entity];
+        let data = {};
+        schema.fields.forEach(f => {
+          data[f.key] = document.getElementById('field_'+f.key).value;
+        });
+        
+        let payload = { sheet: entity, data: data };
+        let action = isEdit ? 'update_data' : 'insert_data';
+        if (isEdit) { payload.idField = schema.idField; payload.idValue = idVal; }
+        
+        document.getElementById('modal-body').innerHTML = '<div class="spinner"></div>Saving...';
+        let res = await App.rpc(action, payload);
+        if(res.success) {
+          UI.closeModal();
+          App.loadView(entity); // reload
+        } else {
+          alert('Error: ' + res.message);
+        }
+      }
+    };
+
+    // ----- SCHEMAS for Auto CRUD ----- //
+    const Schemas = {
+      Customers: {
+        idField: 'customer_id',
+        fields: [
+          { key: 'customer_id', label: 'ID', disabled: true, hideList: false },
+          { key: 'name', label: 'Name', required: true },
+          { key: 'phone', label: 'Phone', required: true },
+          { key: 'email', label: 'Email' },
+          { key: 'customer_type', label: 'Type', type: 'select', options: ['Retail', 'Corporate', 'Student'] }
+        ]
+      },
+      PaperStock: {
+        idField: 'id',
+        fields: [
+          { key: 'id', label: 'ID', disabled: true },
+          { key: 'name', label: 'Item Name', required: true },
+          { key: 'category', label: 'Category', type: 'select', options: ['Paper', 'Ink', 'Material'] },
+          { key: 'gsm', label: 'GSM' },
+          { key: 'size', label: 'Size' },
+          { key: 'selling_price', label: 'Price', type: 'number' },
+          { key: 'current_stock', label: 'Stock', type: 'number' }
+        ]
+      },
+      Services: {
+        idField: 'service_id',
+        fields: [
+          { key: 'service_id', label: 'ID' },
+          { key: 'service_name', label: 'Service Name', required: true },
+          { key: 'price', label: 'Price', type: 'number', required: true },
+          { key: 'cost', label: 'Cost', type: 'number' }
+        ]
+      },
+      Expenses: {
+        idField: 'expense_id',
+        fields: [
+          { key: 'expense_id', label: 'ID' },
+          { key: 'category', label: 'Category', type: 'select', options: ['Rent', 'Salary', 'Utilities', 'Maintenance', 'Marketing'] },
+          { key: 'amount', label: 'Amount', type: 'number', required: true },
+          { key: 'description', label: 'Description' }
+        ]
+      }
+    };
+
+    // ----- CUSTOM VIEWS ----- //
+    const Views = {
+      Dashboard: async function(container) {
+        let res = await App.rpc('get_dashboard', {});
+        let d = res.data || { todaySales:0, monthlySales:0, pendingOrders:0, lowStock:0, recentSales:[] };
+        
+        container.innerHTML = `
+          <div class="grid-4">
+            <div class="stat-card glass"><span class="material-icons" style="color:var(--secondary)">attach_money</span><h3>Today's Sales</h3><div class="val">৳${d.todaySales}</div></div>
+            <div class="stat-card glass"><span class="material-icons" style="color:var(--success)">timeline</span><h3>Monthly Sales</h3><div class="val">৳${d.monthlySales}</div></div>
+            <div class="stat-card glass"><span class="material-icons" style="color:var(--accent)">list_alt</span><h3>Pending Orders</h3><div class="val">${d.pendingOrders}</div></div>
+            <div class="stat-card glass"><span class="material-icons" style="color:var(--danger)">warning</span><h3>Low Stock Alerts</h3><div class="val">${d.lowStock}</div></div>
+          </div>
+          <div class="glass" style="padding:20px; border-radius:12px;">
+            <h3>Recent Sales</h3>
+            <table style="margin-top:15px;">
+              <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                ${d.recentSales.map(s => `<tr><td>${s.sale_id}</td><td>${s.date.substring(0,10)}</td><td>৳${s.net_amount}</td><td><span style="color:var(--success)">${s.status}</span></td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top: 20px;">
+            <button class="btn btn-primary" onclick="App.rpc('setup_demo').then(r=>alert(r.message))">Inject Demo Data (Warning: Clears DB)</button>
+          </div>
+        `;
+      },
+      
+      POS: async function(container) {
+        // Fetch products and services for POS
+        let [prodRes, servRes, custRes] = await Promise.all([
+          App.rpc('get_data', {sheet: 'PaperStock'}),
+          App.rpc('get_data', {sheet: 'Services'}),
+          App.rpc('get_data', {sheet: 'Customers'})
+        ]);
+        
+        App.state.posData = {
+          products: prodRes.data || [],
+          services: servRes.data || [],
+          customers: custRes.data || []
+        };
+        
+        App.state.cart = []; // reset
+        
+        let html = `
+          <div class="pos-grid">
+            <div class="pos-products glass" style="padding:20px; border-radius:12px;">
+              <input type="text" id="pos-search" placeholder="Search by Barcode, Name or Category (F2)" style="font-size:18px; padding:12px;" oninput="POS.filterItems(this.value)">
+              
+              <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-outline" onclick="POS.showTab('services')">Services</button>
+                <button class="btn btn-outline" onclick="POS.showTab('paper')">Paper & Products</button>
+              </div>
+              
+              <div id="pos-items-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:15px; margin-top:20px; overflow-y:auto; height:calc(100vh - 280px);">
+                <!-- Items injected here -->
+              </div>
+            </div>
+            
+            <div class="pos-cart glass" style="padding:20px; border-radius:12px; display:flex; flex-direction:column;">
+              <select id="pos-customer" style="margin-bottom:10px;">
+                <option value="Walk-in">Walk-in Customer</option>
+                ${App.state.posData.customers.map(c => `<option value="${c.customer_id}">${c.name} - ${c.phone}</option>`).join('')}
+              </select>
+              
+              <div class="cart-items" id="cart-list"></div>
+              
+              <div class="cart-totals">
+                <div class="tot-row"><span>Subtotal:</span><span id="cart-sub">৳0</span></div>
+                <div class="tot-row"><span>Discount:</span><input type="number" id="cart-disc" value="0" style="width:80px; padding:2px;" onchange="POS.renderCart()"></div>
+                <div class="tot-row" style="font-size:20px; font-weight:700; border-top:1px solid var(--border); padding-top:10px; margin-top:10px;"><span>Total:</span><span id="cart-net">৳0</span></div>
+              </div>
+              
+              <button class="btn btn-success" style="width:100%; justify-content:center; padding:15px; font-size:18px;" onclick="POS.checkout()">Pay & Print (F12)</button>
+            </div>
+          </div>
+        `;
+        container.innerHTML = html;
+        POS.showTab('services');
+      }
+    };
+
+    // ----- POS LOGIC ----- //
+    const POS = {
+      activeTab: 'services',
+      showTab: function(tab) {
+        POS.activeTab = tab;
+        let items = tab === 'services' ? App.state.posData.services : App.state.posData.products;
+        POS.renderItems(items);
+      },
+      renderItems: function(items) {
+        const grid = document.getElementById('pos-items-grid');
+        grid.innerHTML = items.map(i => {
+          let id = i.service_id || i.id;
+          let name = i.service_name || i.name;
+          let price = i.price || i.selling_price;
+          let type = i.service_id ? 'service' : 'product';
+          return `
+            <div class="glass" style="padding:15px; text-align:center; cursor:pointer; border-radius:8px;" onclick="POS.addToCart('${id}', '${name}', ${price}, '${type}')">
+              <div style="font-weight:600; margin-bottom:5px;">${name}</div>
+              <div style="color:var(--success)">৳${price}</div>
+            </div>
+          `;
+        }).join('');
+      },
+      filterItems: function(q) {
+        q = q.toLowerCase();
+        let items = POS.activeTab === 'services' ? App.state.posData.services : App.state.posData.products;
+        let filtered = items.filter(i => {
+          let name = (i.service_name || i.name).toLowerCase();
+          let code = (i.barcode || i.item_code || '').toLowerCase();
+          return name.includes(q) || code.includes(q);
+        });
+        POS.renderItems(filtered);
+      },
+      addToCart: function(id, name, price, type) {
+        let existing = App.state.cart.find(c => c.id === id);
+        if(existing) {
+          existing.qty++;
+        } else {
+          App.state.cart.push({id, name, price, type, qty: 1, details: {}});
+        }
+        POS.renderCart();
+      },
+      updateQty: function(idx, val) {
+        App.state.cart[idx].qty = parseInt(val) || 1;
+        POS.renderCart();
+      },
+      removeItem: function(idx) {
+        App.state.cart.splice(idx, 1);
+        POS.renderCart();
+      },
+      renderCart: function() {
+        let sub = 0;
+        document.getElementById('cart-list').innerHTML = App.state.cart.map((c, idx) => {
+          let tot = c.qty * c.price;
+          sub += tot;
+          return `
+            <div class="cart-item">
+              <div style="flex:1;">
+                <div style="font-weight:600;">${c.name}</div>
+                <div style="color:#666; font-size:12px;">৳${c.price} x <input type="number" value="${c.qty}" style="width:50px; padding:2px;" onchange="POS.updateQty(${idx}, this.value)"></div>
+              </div>
+              <div style="font-weight:600; padding-right:10px;">৳${tot}</div>
+              <span class="material-icons" style="color:var(--danger); cursor:pointer;" onclick="POS.removeItem(${idx})">delete</span>
+            </div>
+          `;
+        }).join('');
+        
+        let disc = parseFloat(document.getElementById('cart-disc').value) || 0;
+        let net = sub - disc;
+        
+        document.getElementById('cart-sub').innerText = '৳' + sub;
+        document.getElementById('cart-net').innerText = '৳' + net;
+      },
+      checkout: function() {
+        if(App.state.cart.length === 0) return alert('Cart is empty!');
+        let sub = App.state.cart.reduce((s, c) => s + (c.price * c.qty), 0);
+        let disc = parseFloat(document.getElementById('cart-disc').value) || 0;
+        
+        let html = `
+          <div style="font-size:24px; font-weight:700; margin-bottom:20px; text-align:center;">Net Payable: ৳${sub - disc}</div>
+          <div class="form-group"><label>Payment Method</label><select id="pay-method"><option>Cash</option><option>Bkash</option><option>Card</option></select></div>
+          <div class="form-group"><label>Paid Amount</label><input type="number" id="pay-amount" value="${sub - disc}"></div>
+          <button class="btn btn-success" style="width:100%; justify-content:center; padding:12px;" onclick="POS.completeCheckout(${sub}, ${disc})">Confirm Payment</button>
+        `;
+        UI.openModal('Checkout', html);
+      },
+      completeCheckout: async function(sub, disc) {
+        let net = sub - disc;
+        let paid = parseFloat(document.getElementById('pay-amount').value) || 0;
+        let method = document.getElementById('pay-method').value;
+        let custId = document.getElementById('pos-customer').value;
+        
+        let payload = {
+          customer_id: custId,
+          total: sub,
+          discount: disc,
+          net_amount: net,
+          paid: paid,
+          due: net - paid,
+          payment_method: method,
+          operator: App.state.user.user_id,
+          items: App.state.cart
+        };
+        
+        document.getElementById('modal-body').innerHTML = '<div class="spinner"></div>Processing...';
+        let res = await App.rpc('save_sale', payload);
+        if(res.success) {
+          UI.closeModal();
+          alert('Sale Completed! Invoice: ' + res.saleId);
+          App.state.cart = [];
+          POS.renderCart();
+        } else {
+          alert('Error: ' + res.message);
+        }
+      }
+    };
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if(App.state.view === 'POS') {
+        if(e.key === 'F2') { e.preventDefault(); document.getElementById('pos-search').focus(); }
+        if(e.key === 'F12') { e.preventDefault(); POS.checkout(); }
+      }
+    });
+
+    // Boot App
+    window.onload = App.init;
+
+  </script>
+</body>
+</html>
